@@ -205,71 +205,94 @@ def parse_spec(spec: str, root: Path) -> tuple[str, Path, int, int | None]:
 # --------------------------------------------------------------------------
 
 CSS = """
+/* One knob controls every size. 17px default measured comfortable on a
+   1920x1080 / 96dpi laptop with no desktop scaling; the A-/A+ control writes
+   --base and persists it, so no reviewer has to zoom the browser. */
+:root{--base:17px}
+html{font-size:var(--base);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
-  background:#f6f7f9;color:#101828;font-size:14.5px;line-height:1.55;display:flex;align-items:flex-start}
-nav{position:sticky;top:0;flex:0 0 320px;max-height:100vh;overflow-y:auto;padding:18px 14px;
+  background:#f6f7f9;color:#101828;font-size:1rem;line-height:1.6;display:flex;align-items:flex-start}
+nav{position:sticky;top:0;flex:0 0 21rem;max-height:100vh;overflow-y:auto;padding:1.1rem .9rem;
   background:#fff;border-right:1px solid #e4e7ec}
-nav h2{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#667085;margin:0 0 10px}
-nav a{display:block;padding:7px 9px;border-radius:7px;color:#1d2939;text-decoration:none;font-size:12.5px}
+nav h2{font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:#667085;margin:0 0 .6rem}
+nav a{display:block;padding:.42rem .55rem;border-radius:7px;color:#1d2939;text-decoration:none;font-size:.84rem}
 nav a:hover{background:#f2f4f7}
-nav a b{display:inline-block;width:22px;color:#3538cd}
-nav a span{display:block;margin-left:22px;color:#98a2b3;font-size:10.5px;font-family:ui-monospace,monospace}
+nav a b{display:inline-block;width:1.5rem;color:#3538cd}
+nav a span{display:block;margin-left:1.5rem;color:#98a2b3;font-size:.7rem;font-family:ui-monospace,monospace}
 nav a.done b{color:#079455}
-main{flex:1;min-width:0;max-width:1040px;padding:0 26px 80px}
-.hdr{padding:26px 4px 0}
-.hdr h1{font-size:26px;margin:0 0 4px}
-.hdr p{color:#475467;margin:0}
-.bar{position:sticky;top:0;z-index:5;display:flex;gap:9px;align-items:center;
-  background:#f6f7f9;padding:14px 4px;margin-top:14px;border-bottom:1px solid #e4e7ec}
-button{font:inherit;font-weight:600;font-size:12.5px;border-radius:8px;padding:8px 13px;cursor:pointer;
-  border:1px solid #d0d5dd;background:#fff;color:#1d2939}
+main{flex:1;min-width:0;max-width:64rem;padding:0 1.6rem 5rem}
+.hdr{padding:1.6rem .25rem 0}
+.hdr h1{font-size:1.7rem;margin:0 0 .25rem;line-height:1.25}
+.hdr p{color:#475467;margin:0;font-size:.95rem}
+.bar{position:sticky;top:0;z-index:5;display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;
+  background:#f6f7f9;padding:.85rem .25rem;margin-top:.85rem;border-bottom:1px solid #e4e7ec}
+button{font:inherit;font-weight:600;font-size:.84rem;border-radius:8px;padding:.5rem .8rem;cursor:pointer;
+  border:1px solid #d0d5dd;background:#fff;color:#1d2939;min-height:2.3rem}
 button.primary{background:#3538cd;border-color:#3538cd;color:#fff}
 button:hover{filter:brightness(.97)}
-.count{margin-left:auto;color:#475467;font-size:12.5px}
-section{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:22px 26px;margin:18px 0}
-.shead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+.zoom{display:flex;gap:.3rem;align-items:center;margin-left:.4rem}
+.zoom button{min-width:2.3rem;padding:.5rem .6rem;font-size:.95rem;line-height:1}
+.zoom span{color:#667085;font-size:.78rem;min-width:3.1rem;text-align:center}
+.count{margin-left:auto;color:#475467;font-size:.84rem}
+section{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:1.4rem 1.6rem;margin:1.1rem 0}
+.shead{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:.4rem}
 .tag{display:inline-block;background:#eef4ff;color:#3538cd;border:1px solid #c7d7fe;border-radius:999px;
-  padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
-.src{font-size:11px;color:#98a2b3;font-family:ui-monospace,monospace}
-section h1{font-size:21px;margin:4px 0 12px}
-section h2{font-size:18px;margin:20px 0 6px;padding-bottom:5px;border-bottom:1px solid #eaecf0}
-section h3{font-size:15px;margin:16px 0 5px}
-section h4{font-size:12.5px;margin:13px 0 4px;color:#475467;text-transform:uppercase;letter-spacing:.3px}
-p{margin:7px 0}
-ul,ol{margin:6px 0;padding-left:22px}
-li{margin:3px 0}
-code{background:#f2f4f7;border:1px solid #eaecf0;border-radius:4px;padding:1px 5px;
-  font-size:12.5px;font-family:ui-monospace,monospace}
-pre{background:#0c111d;color:#e4e7ec;border-radius:9px;padding:13px;overflow-x:auto;
-  font-size:12.5px;font-family:ui-monospace,monospace}
-pre code{background:none;border:0;color:inherit;padding:0}
-table{border-collapse:collapse;width:100%;margin:11px 0;font-size:13px}
-th{background:#f9fafb;text-align:left;padding:7px 9px;border:1px solid #eaecf0;font-weight:600}
-td{padding:7px 9px;border:1px solid #eaecf0;vertical-align:top}
-.fb{margin-top:18px;border-top:1px dashed #d0d5dd;padding-top:14px}
-.fb label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.4px;color:#667085;margin-bottom:6px}
-.fb textarea{width:100%;min-height:78px;resize:vertical;font:inherit;font-size:13.5px;padding:10px 12px;
-  border:1px solid #d0d5dd;border-radius:9px;background:#fcfcfd}
+  padding:.18rem .6rem;font-size:.72rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.src{font-size:.72rem;color:#98a2b3;font-family:ui-monospace,monospace}
+section h1{font-size:1.4rem;margin:.25rem 0 .75rem;line-height:1.3}
+section h2{font-size:1.18rem;margin:1.25rem 0 .4rem;padding-bottom:.3rem;border-bottom:1px solid #eaecf0}
+section h3{font-size:1.02rem;margin:1rem 0 .3rem}
+section h4{font-size:.8rem;margin:.8rem 0 .25rem;color:#475467;text-transform:uppercase;letter-spacing:.3px}
+p{margin:.45rem 0}
+ul,ol{margin:.4rem 0;padding-left:1.4rem}
+li{margin:.2rem 0}
+code{background:#f2f4f7;border:1px solid #eaecf0;border-radius:4px;padding:.05rem .3rem;
+  font-size:.87em;font-family:ui-monospace,monospace}
+pre{background:#0c111d;color:#e4e7ec;border-radius:9px;padding:.8rem;overflow-x:auto;
+  font-size:.84rem;font-family:ui-monospace,monospace;line-height:1.5}
+pre code{background:none;border:0;color:inherit;padding:0;font-size:1em}
+table{border-collapse:collapse;width:100%;margin:.7rem 0;font-size:.88rem}
+th{background:#f9fafb;text-align:left;padding:.45rem .55rem;border:1px solid #eaecf0;font-weight:600}
+td{padding:.45rem .55rem;border:1px solid #eaecf0;vertical-align:top}
+.fb{margin-top:1.1rem;border-top:1px dashed #d0d5dd;padding-top:.9rem}
+.fb label{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.4px;color:#667085;margin-bottom:.35rem}
+.fb textarea{width:100%;min-height:5rem;resize:vertical;font:inherit;font-size:.94rem;padding:.6rem .7rem;
+  border:1px solid #d0d5dd;border-radius:9px;background:#fcfcfd;line-height:1.5}
 .fb textarea:focus{outline:2px solid #b2ccff;border-color:#84adff}
-.verdicts{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.verdicts{display:flex;gap:.45rem;margin-top:.55rem;flex-wrap:wrap}
 .verdicts button.on[data-v="ok"]{background:#dcfae6;border-color:#75e0a7;color:#05603a}
 .verdicts button.on[data-v="concern"]{background:#fef0c7;border-color:#fdb022;color:#7a2e0e}
 .verdicts button.on[data-v="block"]{background:#fee4e2;border-color:#fda29b;color:#912018}
-dialog{border:1px solid #d0d5dd;border-radius:12px;padding:0;max-width:760px;width:92vw}
-dialog form{padding:20px 22px}
-dialog h3{margin:0 0 10px;font-size:17px}
-dialog textarea{width:100%;height:44vh;font-family:ui-monospace,monospace;font-size:12px;
-  border:1px solid #d0d5dd;border-radius:9px;padding:11px}
+dialog{border:1px solid #d0d5dd;border-radius:12px;padding:0;max-width:48rem;width:92vw}
+dialog form{padding:1.2rem 1.3rem}
+dialog h3{margin:0 0 .6rem;font-size:1.1rem}
+dialog textarea{width:100%;height:44vh;font-family:ui-monospace,monospace;font-size:.8rem;
+  border:1px solid #d0d5dd;border-radius:9px;padding:.7rem}
 @media (max-width:900px){body{display:block}nav{position:static;max-height:none;flex:none;
-  border-right:0;border-bottom:1px solid #e4e7ec}main{max-width:none;padding:0 14px 60px}}
+  border-right:0;border-bottom:1px solid #e4e7ec}main{max-width:none;padding:0 .9rem 4rem}}
 """
 
 JS = """
 const KEY = 'planreview:' + (document.body.dataset.planid || location.pathname);
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
 let state = load();
+
+/* Text size. Persisted globally, not per plan, because it is a property of the
+   reader's screen rather than of the document. Reviewers should never have to
+   reach for browser zoom. */
+const ZKEY = 'planreview:basepx';
+const ZMIN = 14, ZMAX = 26, ZDEF = 17;
+function applyZoom(px) {
+  px = Math.max(ZMIN, Math.min(ZMAX, px));
+  document.documentElement.style.setProperty('--base', px + 'px');
+  localStorage.setItem(ZKEY, String(px));
+  const out = document.getElementById('zlevel');
+  if (out) out.textContent = px + 'px';
+  return px;
+}
+let basePx = applyZoom(parseInt(localStorage.getItem(ZKEY) || '', 10) || ZDEF);
 
 function paint() {
   let n = 0;
@@ -307,6 +330,11 @@ document.addEventListener('click', e => {
     save();
     return;
   }
+  const zb = e.target.closest('.zoom button');
+  if (zb) {
+    basePx = applyZoom(zb.dataset.z === 'reset' ? ZDEF : basePx + Number(zb.dataset.z));
+    return;
+  }
   if (e.target.id === 'export') {
     const out = { plan: document.title, exported: new Date().toISOString(), sections: [] };
     document.querySelectorAll('section').forEach(sec => {
@@ -326,6 +354,15 @@ document.addEventListener('click', e => {
       confirm('Discard all comments and verdicts for this plan?')) {
     state = {}; save();
   }
+});
+
+/* Ctrl/Cmd +/-/0 adjust the document instead of the browser, so the setting
+   persists for the next plan too. */
+document.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  if (e.key === '=' || e.key === '+') { basePx = applyZoom(basePx + 1); e.preventDefault(); }
+  else if (e.key === '-') { basePx = applyZoom(basePx - 1); e.preventDefault(); }
+  else if (e.key === '0') { basePx = applyZoom(ZDEF); e.preventDefault(); }
 });
 paint();
 """
@@ -381,6 +418,12 @@ def build(title: str, subtitle: str, sections: list[tuple[str, Path, int, int | 
 <div class="bar">
   <button class="primary" id="export">Export comments</button>
   <button id="clear">Clear</button>
+  <span class="zoom" title="Text size (also Ctrl/Cmd with plus, minus, or 0)">
+    <button data-z="-1" aria-label="Smaller text">A&minus;</button>
+    <span id="zlevel">17px</span>
+    <button data-z="1" aria-label="Larger text">A+</button>
+    <button data-z="reset" aria-label="Reset text size">Reset</button>
+  </span>
   <span class="count"></span>
 </div>
 {''.join(body)}

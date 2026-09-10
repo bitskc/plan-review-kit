@@ -49,7 +49,14 @@ Renders markdown plans into one self-contained HTML board with a comment box and
 `localStorage`; `Export comments` emits JSON keyed by section label and source
 `file:line`, so feedback maps straight back to the artifact it is about.
 
-## The tool
+Text sizing is deliberate: one `--base` property drives every size in `rem`, defaulting
+to **17px** (measured comfortable on a 1920x1080 / 96dpi laptop with no desktop scaling),
+with an `A− / A+ / Reset` control and Ctrl/Cmd `+`/`-`/`0` that persist globally. Nobody
+should have to zoom the browser to read a plan.
+
+## The tools
+
+### `scripts/plan_review_board.py`
 
 ```bash
 # one section per H2 across several docs
@@ -65,6 +72,24 @@ python3 -m http.server 8899 --directory /tmp/review
 
 Then open `http://127.0.0.1:8899/`. Serve over HTTP rather than `file://` — some browsers
 restrict `localStorage` on `file://` and silently lose comments.
+
+### `scripts/bump_board_text.py`
+
+Makes an existing **gstack** `design compare` board readable. That board hardcodes 12-16px
+chrome with no root `font-size` and squeezes variant screenshots into a 3-up grid, so a
+page screenshot renders at about a third of natural size. This appends a single override
+`<style>` block to the generated artifact under `~/.gstack/.../designs/` — it never edits
+the gstack skill or binary, and re-running replaces its own block.
+
+```bash
+$D compare --images "$IMAGES" --output "$DIR/design-board.html"   # generate only
+python3 scripts/bump_board_text.py "$DIR/design-board.html" --base 17 --columns 2
+$D serve --html "$DIR/design-board.html"                          # then publish
+```
+
+Order matters: the daemon caches published boards in memory by id, so patching after
+`--serve` does nothing and republishing the same directory reuses the cache. Use a fresh
+source directory to mint a new board id.
 
 Requires Python 3.9+. No pip install, no network, no API keys.
 

@@ -105,5 +105,70 @@ separate fragments and leaks them into the page — the exact bug this ordering 
 
 Literal asterisks inside code (`***`, `path/**`) are left alone, which is correct.
 
-`backdrop-filter` is deliberately absent: it stalls compositing in headless Chromium and
-hangs `scrollIntoViewIfNeeded`, which breaks automated verification of the board.
+## Text size — the default must be readable without zooming
+
+
+Every size derives from one `--base` custom property on `:root`; everything else is in
+`rem`. Default is **17px**, measured comfortable on a 1920x1080 / 96dpi laptop with no
+desktop scaling. The `A− / A+ / Reset` control in the toolbar (and Ctrl/Cmd with `+`,
+`-`, `0`) rewrites `--base` between 14 and 26px and persists it in `localStorage` under a
+**global** key, not a per-plan one — text size is a property of the reader's screen, so it
+should carry to the next plan.
+
+Do not ship a 12-14px base and expect reviewers to reach for browser zoom. Secondary text
+(source labels, nav, table cells) is the part that actually becomes unreadable, so keep it
+at `>= 0.72rem` rather than a fixed small px.
+
+## Verifying in headless Chromium without wedging the page
+
+Measure computed sizes rather than eyeballing a screenshot:
+
+```js
+parseFloat(getComputedStyle(document.querySelector('section p')).fontSize)
+```
+
+**Do not fire click storms.** Driving 30+ rapid `page.click()` calls to test a control's
+clamp wedges the tab's main world: every later `page.evaluate` / `isIntersectingViewport`
+dies with `Runtime.callFunctionOn timed out` while `boundingBox()` still answers. That
+signature means the tab is wedged, not that the page is broken — open a fresh tab and
+retry with two or three real clicks, and exercise clamping with in-page `.click()` calls
+inside a single `evaluate` instead.
+
+(An earlier version of this skill blamed that hang on `backdrop-filter`. That was wrong;
+the hang reproduced with the property removed and disappeared on a clean tab. The
+property is still absent, but for plainness, not performance.)
+
+## Fixing an existing gstack design board's text size
+
+gstack's `design compare` board hardcodes 12-16px chrome with no root `font-size`, and
+caps variant images at `width:100%` in a 3-up grid on a 1400px container — so a
+1240px-wide page screenshot renders at roughly a third of natural size and its text is
+unreadable. `scripts/bump_board_text.py` appends one override `<style>` block to the
+generated board. It touches only the artifact under `~/.gstack/.../designs/`, never the
+gstack skill or binary, and re-running replaces its own block instead of stacking copies.
+
+The order matters, because the daemon caches a published board **in memory** by id:
+patching the file after `--serve` changes nothing, and republishing the same directory
+reuses the cached copy.
+
+```bash
+# 1. generate only — no --serve, nothing published yet
+$D compare --images "$IMAGES" --output "$DIR/design-board.html"
+# 2. patch the generated HTML
+python3 scripts/bump_board_text.py "$DIR/design-board.html" --base 17 --columns 2
+# 3. publish the patched file
+$D serve --html "$DIR/design-board.html"
+```
+
+If the returned `BOARD_URL` keeps its previous id and the page is still small, the daemon
+served its cache. Copy the images to a **new** directory, then repeat 1-3 there; a new
+source directory mints a new board id and forces a re-read. Confirm with:
+
+```js
+document.documentElement.innerHTML.includes('plan-review-kit:text-size')
+```
+
+Verified effect at `--base 17 --columns 2`: root 16 to 17px, header 16 to 25.5px, variant
+label 15 to 19px, meta 13 to 15.8px, comment box 13 to 17px, and each screenshot renders
+1552px wide instead of 1352px against a 1240px natural width, so section text lands above
+1:1 rather than shrunk.

@@ -73,7 +73,7 @@ Requires Python 3.9+. No pip install, no network, no API keys.
 Drop the skills where your agent looks for them:
 
 ```bash
-git clone https://github.com/OWNER/plan-review-kit
+git clone https://github.com/bitskc/plan-review-kit
 cd plan-review-kit
 
 # Claude Code / omp (user-level)
@@ -91,7 +91,7 @@ next to the skills, or edit the paths in the skill to point at wherever you put 
 Both skills are self-contained markdown. To hand them to a running session, either point
 it at this repo:
 
-> Read the skills at https://github.com/OWNER/plan-review-kit and use
+> Read the skills at https://github.com/bitskc/plan-review-kit and use
 > `adversarial-plan-review` on `<your plan>`.
 
 or copy the directories into that session's skills path and let it discover them.
